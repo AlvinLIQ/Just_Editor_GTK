@@ -9,20 +9,14 @@ struct DrnTab;
 #define TabPtr struct DrnTab*
 #define DRN_TAB (x) (TabPtr)x
 
-<<<<<<< HEAD
 GtkWidget *selectedTab;
 
-=======
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 struct DrnTab
 {
 	GtkWidget *content;
 	gchar *title;
 	gchar *path;
-<<<<<<< HEAD
 	GtkWidget *editor;
-=======
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 	TabPtr nxtPtr;
 };
 
@@ -37,11 +31,7 @@ struct DrnEdit
 void AddTab (gchar *title, gchar *path, GtkWidget *content, TabPtr after)
 {
 	TabPtr nPtr;
-<<<<<<< HEAD
 	struct DrnTab nTab = {content, title, path, gtk_text_view_new (), NULL};
-=======
-	struct DrnTab nTab = {content, title, path, NULL};
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 	while ((nPtr = after->nxtPtr) != NULL);
 	nPtr = &nTab;
 //	nPtr = (TabPtr)malloc (sizeof (struct DrnTab));
@@ -125,14 +115,10 @@ void css_default ()
 		"border:			0 none;"
 		"}"
 		"notebook header{"
-<<<<<<< HEAD
 		"padding:			0px;"
 		"}"
 		"notebook tab{"
 		"background-color:		#222;"
-=======
-		"padding:			5px;"
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 		"}"
 		"notebook tab:first-child, header button, scrollbar:hover, scrollbar{"
 		"background:			rgba (0, 0, 0, 0);"
@@ -140,12 +126,9 @@ void css_default ()
 		"notebook tab:hover{"
 		"background-color:		#444;"
 		"}"
-<<<<<<< HEAD
 		"notebook tab:active{"
 		"color:				#888;"
 		"}"
-=======
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 		"label{"
 		"text-shadow:			none;"
 		"color:				#777;"
@@ -154,12 +137,9 @@ void css_default ()
 		"background-color:		#202929;"
 		"color:				#777;"
 		"}"
-<<<<<<< HEAD
 		"textview{"
 		"font-size:			13pt;"
 		"}"
-=======
->>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 		".titlebar, notebook, header.top{"
 		"background-color:		#253333;"
 		"}"
