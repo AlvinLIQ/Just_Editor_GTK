@@ -1,5 +1,8 @@
 #include <string.h>
+<<<<<<< HEAD
 #include <stdio.h>
+=======
+>>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
 
 unsigned int find_str (char *source, char *target, unsigned int sLen, unsigned int tLen, unsigned int sIndex)
 {
@@ -11,6 +14,7 @@ unsigned int find_str (char *source, char *target, unsigned int sLen, unsigned i
 	unsigned int fIndex = 0;
 	for (; sIndex <= sLen - tLen + fIndex && fIndex != tLen; fIndex = source[sIndex] == target[fIndex] ? fIndex + 1 : 0, sIndex++);
 	return fIndex == tLen ? sIndex - tLen : -1;
+<<<<<<< HEAD
 }
 
 char *afterLast (char *source, char s)
@@ -42,3 +46,6 @@ char *readFileFrStr (char *path)
 	fclose (fp);
 	return result;
 }
+=======
+}
+>>>>>>> e86d6612e0664a2b30f2f82d956ca36d10742bc9
