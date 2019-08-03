@@ -57,10 +57,10 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 	}
 	else
 	{
-		tTab = tab_template (afterLast ((char*)sender, '/'), scr);
+		tTab = tab_template (afterLast ((char*)sender, path_split), scr);
 		tTab.path = (char*)sender;
-
 		char *nText = readFileFrStr (tTab.path);
+
 		GtkTextBuffer *nBuf = gtk_text_buffer_new (NULL);
 		gtk_text_buffer_set_text (nBuf, nText, -1);
 		gtk_text_view_set_buffer (GTK_TEXT_VIEW (tTab.editor), nBuf);

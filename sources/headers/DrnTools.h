@@ -28,7 +28,8 @@ char *readFile (FILE *fp)
 	char *result = (char*)malloc (10240);
 	unsigned int i = 0;
 
-	while ((result[i++] = fgetc (fp)) != EOF && i < 10240);
+	while ((result[i++] = fgetc (fp)) != (unsigned char)EOF && i < 10240);
+
 	result[i - 1] = '\0';
 
 	return result;
