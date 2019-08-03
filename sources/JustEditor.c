@@ -4,7 +4,7 @@ int main (int argc, char **argv)
 {
 	int status;
 	GtkApplication *JustEditor;
-	
+
 	JustEditor = gtk_application_new ("Just.Editor", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect (JustEditor, "activate", G_CALLBACK (Init), NULL);
 	status = g_application_run (G_APPLICATION (JustEditor), argc, argv);
@@ -57,9 +57,9 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 	}
 	else
 	{
-		tTab = tab_template (afterLast ((char*)sender, path_split), scr);
-		tTab.path = (char*)sender;
-		char *nText = readFileFrStr (tTab.path);
+		tTab = tab_template (afterLast ((uchar*)sender, path_split), scr);
+		tTab.path = (uchar*)sender;
+		uchar *nText = readFileFrStr (tTab.path);
 
 		GtkTextBuffer *nBuf = gtk_text_buffer_new (NULL);
 		gtk_text_buffer_set_text (nBuf, nText, -1);
@@ -80,7 +80,7 @@ void openfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 					 "Cancel", GTK_RESPONSE_CANCEL, NULL);
 	if (gtk_dialog_run (GTK_DIALOG (chsr)) == GTK_RESPONSE_ACCEPT)
 	{
-		char *filename;
+		uchar *filename;
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (chsr);
 		filename = gtk_file_chooser_get_filename (chooser);
 

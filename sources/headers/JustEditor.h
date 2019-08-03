@@ -1,10 +1,9 @@
 #include "DrnGtk.h"
-#include "DrnTools.h"
 
-#ifdef _WIN32
-#define path_split '\\'
-#else
+#ifdef _LINUX
 #define path_split '/'
+#else
+#define path_split '\\'
 #endif
 
 GtkWidget *mWindow, *tabCon;

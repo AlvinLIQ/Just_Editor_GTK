@@ -1,9 +1,5 @@
+#include "DrnTools.h"
 #include <gtk/gtk.h>
-#include <stdlib.h>
-
-#define bool unsigned
-#define true 1
-#define false 0
 
 struct DrnTab;
 #define TabPtr struct DrnTab*
@@ -119,6 +115,11 @@ void css_default ()
 		"}"
 		"notebook tab{"
 		"background-color:		#222;"
+		"margin:			0px;"
+		"padding:			6px 0px 6px 6px;"
+		"}"
+		"notebook tab:first-child{"
+		"padding:			6px;"
 		"}"
 		"notebook tab:first-child, header button, scrollbar:hover, scrollbar{"
 		"background:			rgba (0, 0, 0, 0);"
@@ -158,12 +159,18 @@ void css_default ()
 		"button:hover{"
 		"background-color:		#353535;"
 		"}"
+		"button:active{"
+		"background-color:		#303030;"
+		"}"
 		"header button{"
 		"padding:			1px 4px 2px 4px;"
 		"margin:			4px 0px;"
 		"}"
 		".titlebar box button:last-child:hover{"
 		"background-color:		#ff0000;"
+		"}"
+		".titlebar box button:last-child:active{"
+		"background-color:		#ee4444;"
 		"}"
 		"scrollbar:hover, scrollbar{"
 		"border:			0 none;"
