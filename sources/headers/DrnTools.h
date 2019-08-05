@@ -8,6 +8,8 @@
 #define uchar unsigned char
 #define uint unsigned int
 
+#define writeFile(fp, wText) fprintf(fp, "%s", wText)
+
 uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
 {
 	if (sLen == -1)
@@ -29,8 +31,21 @@ char *afterLast (char *source, char s)
 
 	return fIndex == -1 ? source : source + fIndex + 1;
 }
+/*
+void writeFile (FILE *fp, char *wText)
+{
+	fprintf (fp, "%s", wText);
+}
+*/
+void writeFileFrStr (char *path, char *wText)
+{
+	FILE *fp = fopen (path, "wb");
+	writeFile (fp, wText);
 
-uchar *readFile (FILE *fp)
+	fclose (fp);
+}
+
+char *readFile (FILE *fp)
 {
 	uchar *result = (char*)malloc (40960);
 	uint i = 0;

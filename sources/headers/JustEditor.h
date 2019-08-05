@@ -1,6 +1,6 @@
 #include "DrnGtk.h"
 
-#ifdef _LINUX
+#ifdef linux
 #define path_split '/'
 #else
 #define path_split '\\'
@@ -12,7 +12,7 @@ void Init (GtkApplication *JustEditor, gpointer sender);
 void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
 void openfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
 void tabClsBtn_clicked (GtkWidget *tab);
-void tabTitle_rightClicked (GtkLabel *tabTitle, TabPtr tab);
+void tabTitle_pressed (GtkLabel *tabTitle, GdkEventButton *args, GtkWidget *tab);
 
 struct DrnTab tab_template (gchar *title, GtkWidget *pageCon)
 {
@@ -26,6 +26,7 @@ struct DrnTab tab_template (gchar *title, GtkWidget *pageCon)
 	g_signal_connect_swapped (clsBtn, "clicked", G_CALLBACK (tabClsBtn_clicked), pageCon);
 	gtk_container_add (GTK_CONTAINER (tabItem.content), clsBtn);
 
+	g_signal_connect (tabItem.content, "button-press-event", G_CALLBACK (tabTitle_pressed), pageCon);
 	gtk_widget_show_all (tabItem.content);
 	return tabItem;
 }
@@ -33,6 +34,14 @@ struct DrnTab tab_template (gchar *title, GtkWidget *pageCon)
 GtkWidget *a_page ()
 {
 	return gtk_label_new ("+");
+}
+
+void tabTitle_pressed (GtkLabel *tabTitle, GdkEventButton *args, GtkWidget *tab)
+{
+	if (args->button == GDK_BUTTON_MIDDLE)
+		tabClsBtn_clicked (tab);
+	else if (args->button == GDK_BUTTON_SECONDARY)
+		g_print ("test\n");
 }
 
 void tabClsBtn_clicked (GtkWidget *tab)
