@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define bool unsigned
 #define true 1
@@ -9,6 +10,50 @@
 #define uint unsigned int
 
 #define writeFile(fp, wText) fprintf(fp, "%s", wText)
+
+#ifdef win32
+#include <winsock2.h>
+
+#pragma comment (lib, "Ws2_32.lib");
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#endif
+
+int initSocket ()
+{
+#ifdef win32
+	WSADATA wsaData;
+	if (WSAStartup (MAKEWORD (2, 2), &wsaData) != 0)
+		return -1;
+#endif
+	int socket_fd;
+	socket_fd = socket (AF_INET, SOCK_STREAM, 0);
+
+	return socket_fd;
+}
+
+int sockConn (int socket_fd, char *ip, int port)
+{
+	struct sockaddr_in target_addr;
+	target_addr.sin_family = AF_INET;
+	target_addr.sin_addr.s_addr = inet_addr (ip);
+	target_addr.sin_port = htons (port);
+
+	return connect (socket_fd, (struct sockaddr*)&target_addr, sizeof (target_addr));
+}
+
+
+
+void closeSocket (int s_fd)
+{
+	close (s_fd);
+#ifdef win32
+	WSACleanup ();
+#endif
+}
 
 uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
 {

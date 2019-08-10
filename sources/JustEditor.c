@@ -35,6 +35,12 @@ void Init (GtkApplication *JustEditor, gpointer sender)
 	tBtn = button_template ("New File");
 	g_signal_connect (tBtn, "clicked", G_CALLBACK (newfBtn_clicked), NULL);
 	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 1, 1, 1, 1);
+
+	gtk_grid_attach (GTK_GRID (mGrid), label_template ("Request", 0), 0, 2, 1, 1);
+
+	tBtn = button_template ("New Request");
+	g_signal_connect (tBtn, "clicked", G_CALLBACK (newrBtn_clicked), NULL);
+	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 0, 3, 1, 1);
 	
 	tabCon = gtk_notebook_new ();
 	gtk_notebook_append_page (GTK_NOTEBOOK (tabCon), mGrid, a_page ());
@@ -72,7 +78,7 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 	gtk_notebook_set_current_page (GTK_NOTEBOOK (tabCon), gtk_notebook_insert_page (GTK_NOTEBOOK (tabCon), scr, tTab.content, gtk_notebook_get_n_pages (GTK_NOTEBOOK (tabCon)) - 1));
 }
 
-void openfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
+void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
 	GtkWidget *chsr;
 	chsr = gtk_file_chooser_dialog_new ("Open File", GTK_WINDOW (mWindow),  GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -89,4 +95,9 @@ void openfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 //		g_free (filename);
 	}
 	gtk_widget_destroy (chsr);
+}
+
+void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
+{
+	
 }

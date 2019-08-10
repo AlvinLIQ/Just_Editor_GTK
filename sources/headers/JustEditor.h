@@ -10,7 +10,8 @@ GtkWidget *mWindow, *tabCon;
 
 void Init (GtkApplication *JustEditor, gpointer sender);
 void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
-void openfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
+void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender);
+void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender);
 void tabClsBtn_clicked (GtkWidget *tab);
 void tabTitle_pressed (GtkLabel *tabTitle, GdkEventButton *args, GtkWidget *tab);
 
