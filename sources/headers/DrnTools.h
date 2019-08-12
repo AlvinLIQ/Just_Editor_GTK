@@ -35,17 +35,15 @@ int initSocket ()
 	return socket_fd;
 }
 
-int sockConn (int socket_fd, char *ip, int port)
+int sockConn (int s_fd, char *ip, int port)
 {
 	struct sockaddr_in target_addr;
 	target_addr.sin_family = AF_INET;
 	target_addr.sin_addr.s_addr = inet_addr (ip);
 	target_addr.sin_port = htons (port);
 
-	return connect (socket_fd, (struct sockaddr*)&target_addr, sizeof (target_addr));
+	return connect (s_fd, (struct sockaddr*)&target_addr, sizeof (target_addr));
 }
-
-
 
 void closeSocket (int s_fd)
 {
@@ -53,6 +51,11 @@ void closeSocket (int s_fd)
 #ifdef win32
 	WSACleanup ();
 #endif
+}
+
+void onConn (int s_fd, void *Callback(int s_fd))
+{
+	Callback (s_fd);
 }
 
 uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
