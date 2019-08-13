@@ -17,8 +17,10 @@
 #pragma comment (lib, "Ws2_32.lib");
 #else
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #endif
 
@@ -53,9 +55,14 @@ void closeSocket (int s_fd)
 #endif
 }
 
-void onConn (int s_fd, void *Callback(int s_fd))
+void onConn (int s_fd, void *Callback())
 {
-	Callback (s_fd);
+	pthread_t th_id;
+	int r_code = pthread_create (&th_id, NULL, Callback, (void *)&s_fd);
+	if (r_code < 0)
+	{
+		printf ("Something wrong!\n");
+	}
 }
 
 uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)

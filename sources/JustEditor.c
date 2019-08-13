@@ -97,7 +97,39 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 	gtk_widget_destroy (chsr);
 }
 
+void *cb(void *sender)
+{
+	int s_fd = *(int*)sender;
+	char s[] = 	"GET / HTTP/1.1\r\n"
+				"Host: 0.0.0.0\r\n"
+				"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0\r\n"
+				"Accept: */*\r\n"
+				"Accept-Language: en-US,en;q=0.5\r\n"
+				"Accept-Encoding: gzip, deflate\r\n"
+				"Connection: close\r\n"
+				"Upgrade-Insecure-Requests: 1\r\n"
+				"Cache-Control: max-age=0\r\n\r\n";
+	char r_str[10240];
+	int r_len;
+	if (send (s_fd, s, strlen(s), 0) >= 0 )
+	{
+		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
+		{
+			r_str [r_len] = '\0';
+			g_print (r_str);
+		}
+		g_print ("over\n");
+	}
+	while (1);
+	closeSocket (s_fd);
+
+	return (void *)0;
+}
+
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 {
+	int s_fd = initSocket ();
 	
+	if (sockConn (s_fd, "0.0.0.0", 80) == 0)
+		onConn (s_fd, cb);
 }
