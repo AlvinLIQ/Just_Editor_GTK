@@ -97,11 +97,17 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 	gtk_widget_destroy (chsr);
 }
 
+#ifdef linux
 void *cb(void *sender)
 {
-	int s_fd = *(int*)sender;
-	char s[] = 	"GET / HTTP/1.1\r\n"
-				"Host: 0.0.0.0\r\n"
+	int s_fd = *(int *)sender;
+#else
+DWORD WINAPI cb(LPVOID sender)
+{
+	int s_fd = *(int *)sender;
+#endif
+	char s[] = 		"GET / HTTP/1.1\r\n"
+				"Host: 192.168.0.109\r\n"
 				"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0\r\n"
 				"Accept: */*\r\n"
 				"Accept-Language: en-US,en;q=0.5\r\n"
@@ -111,25 +117,30 @@ void *cb(void *sender)
 				"Cache-Control: max-age=0\r\n\r\n";
 	char r_str[10240];
 	int r_len;
-	if (send (s_fd, s, strlen(s), 0) >= 0 )
+	g_print ("start\n");
+	if (send (s_fd, s, strlen(s), 0) >= 0)
 	{
+		g_print ("sent\n");
 		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
-			g_print (r_str);
+			g_print ("%s", r_str);
 		}
 		g_print ("over\n");
 	}
-	while (1);
+	g_print ("_close\n");
 	closeSocket (s_fd);
-
+#ifdef linux
 	return (void *)0;
+#else
+	return 0;
+#endif
 }
 
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 {
 	int s_fd = initSocket ();
-	
-	if (sockConn (s_fd, "0.0.0.0", 80) == 0)
-		onConn (s_fd, cb);
+	g_print ("%d\n", s_fd);
+	if (sockConn (s_fd, "192.168.0.109", 80) == 0)
+		onConn (&s_fd, cb);
 }

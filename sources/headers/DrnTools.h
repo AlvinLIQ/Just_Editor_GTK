@@ -11,10 +11,12 @@
 
 #define writeFile(fp, wText) fprintf(fp, "%s", wText)
 
-#ifdef win32
+#ifdef _WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
 
-#pragma comment (lib, "Ws2_32.lib");
+#pragma comment(lib, "Ws2_32.lib")
 #else
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -50,19 +52,29 @@ int sockConn (int s_fd, char *ip, int port)
 void closeSocket (int s_fd)
 {
 	close (s_fd);
-#ifdef win32
+#ifdef _WIN32
 	WSACleanup ();
 #endif
 }
 
-void onConn (int s_fd, void *Callback())
+
+#ifdef _WIN32
+void onConn (int *s_fd, DWORD WINAPI Callback(LPVOID sender))
+{
+	DWORD th_id;
+	HANDLE th_hdl = CreateThread (NULL, 0, Callback, (LPVOID)s_fd, 0, &th_id);
+	sleep (1);
+//	CloseHandle (th_hdl);
+#else
+void onConn (int s_fd, void *Callback (void *sender))
 {
 	pthread_t th_id;
-	int r_code = pthread_create (&th_id, NULL, Callback, (void *)&s_fd);
+	int r_code = pthread_create (&th_id, NULL, Callback, (void *)s_fd);
 	if (r_code < 0)
 	{
 		printf ("Something wrong!\n");
 	}
+#endif
 }
 
 uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
