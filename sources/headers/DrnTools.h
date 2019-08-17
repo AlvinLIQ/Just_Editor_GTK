@@ -26,6 +26,16 @@
 
 #endif
 
+struct sockaddr_in initAddr (char *ip, int port)
+{
+	struct sockaddr_in target_addr;
+	target_addr.sin_family = AF_INET;
+	target_addr.sin_addr.s_addr = inet_addr (ip);
+	target_addr.sin_port = htons (port);
+
+	return target_addr;
+}
+
 int initSocket ()
 {
 #ifdef win32
@@ -39,14 +49,18 @@ int initSocket ()
 	return socket_fd;
 }
 
-int sockConn (int s_fd, char *ip, int port)
+int sockConn (int s_fd, struct sockaddr_in target_addr)
 {
-	struct sockaddr_in target_addr;
-	target_addr.sin_family = AF_INET;
-	target_addr.sin_addr.s_addr = inet_addr (ip);
-	target_addr.sin_port = htons (port);
+	return connect (s_fd, (struct sockaddr *)&target_addr, sizeof (target_addr));
+}
 
-	return connect (s_fd, (struct sockaddr*)&target_addr, sizeof (target_addr));
+int listenSocket(int s_fd, int port)
+{
+	struct sockaddr_in srv_addr = initAddr ("0.0.0.0", port);
+	if (bind (s_fd, (struct sockaddr *)&srv_addr, sizeof (srv_addr)) < 0)
+		return -1;
+
+	return listen (s_fd, 5);
 }
 
 void closeSocket (int s_fd)
@@ -59,17 +73,17 @@ void closeSocket (int s_fd)
 
 
 #ifdef _WIN32
-void onConn (int *s_fd, DWORD WINAPI Callback(LPVOID sender))
+void onConn (DWORD WINAPI Callback(LPVOID sender))
 {
 	DWORD th_id;
-	HANDLE th_hdl = CreateThread (NULL, 0, Callback, (LPVOID)s_fd, 0, &th_id);
-	sleep (1);
-//	CloseHandle (th_hdl);
+	HANDLE th_hdl = CreateThread (NULL, 0, Callback, NULL, 0, &th_id);
+
+	CloseHandle (th_hdl);
 #else
-void onConn (int s_fd, void *Callback (void *sender))
+void onConn (void *Callback (void *sender))
 {
 	pthread_t th_id;
-	int r_code = pthread_create (&th_id, NULL, Callback, (void *)s_fd);
+	int r_code = pthread_create (&th_id, NULL, Callback, NULL);
 	if (r_code < 0)
 	{
 		printf ("Something wrong!\n");

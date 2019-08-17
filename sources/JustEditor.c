@@ -100,12 +100,15 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 #ifdef linux
 void *cb(void *sender)
 {
-	int s_fd = *(int *)sender;
+
 #else
 DWORD WINAPI cb(LPVOID sender)
 {
-	int s_fd = *(int *)sender;
 #endif
+	int s_fd = initSocket ();
+	g_print ("connecting\n");
+	if (sockConn (s_fd, initAddr ("192.168.0.109", 80)) != 0)
+		goto failed;
 	char s[] = 		"GET / HTTP/1.1\r\n"
 				"Host: 192.168.0.109\r\n"
 				"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0\r\n"
@@ -117,7 +120,7 @@ DWORD WINAPI cb(LPVOID sender)
 				"Cache-Control: max-age=0\r\n\r\n";
 	char r_str[10240];
 	int r_len;
-	g_print ("start\n");
+	g_print ("connected\n");
 	if (send (s_fd, s, strlen(s), 0) >= 0)
 	{
 		g_print ("sent\n");
@@ -128,6 +131,8 @@ DWORD WINAPI cb(LPVOID sender)
 		}
 		g_print ("over\n");
 	}
+	else
+		goto failed;
 	g_print ("_close\n");
 	closeSocket (s_fd);
 #ifdef linux
@@ -135,12 +140,16 @@ DWORD WINAPI cb(LPVOID sender)
 #else
 	return 0;
 #endif
+failed:
+	g_print ("failed\n");
+#ifdef linux
+	return (void *)0;
+#else
+	return -1;
+#endif
 }
 
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 {
-	int s_fd = initSocket ();
-	g_print ("%d\n", s_fd);
-	if (sockConn (s_fd, "192.168.0.109", 80) == 0)
-		onConn (&s_fd, cb);
+	onConn (cb);
 }
