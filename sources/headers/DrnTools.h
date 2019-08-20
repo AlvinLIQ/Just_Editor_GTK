@@ -26,7 +26,16 @@
 
 #endif
 
-struct sockaddr_in initAddr (char *ip, int port)
+#define httpRequest struct http_req
+
+struct http_req
+{
+	struct sockaddr_in target_addr;
+	char *hbStr;
+	void *resBox;
+};
+
+struct sockaddr_in initAddr (const char *ip, int port)
 {
 	struct sockaddr_in target_addr;
 	target_addr.sin_family = AF_INET;
@@ -57,10 +66,15 @@ int sockConn (int s_fd, struct sockaddr_in target_addr)
 int listenSocket(int s_fd, int port)
 {
 	struct sockaddr_in srv_addr = initAddr ("0.0.0.0", port);
-	if (bind (s_fd, (struct sockaddr *)&srv_addr, sizeof (srv_addr)) < 0)
+	if (bind (s_fd, (struct sockaddr *)&srv_addr, sizeof (srv_addr)) == -1)
 		return -1;
 
-	return listen (s_fd, 5);
+	if (listen (s_fd, 5) == -1);
+		return -1;
+
+	int s_len = sizeof (srv_addr);
+
+	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);
 }
 
 void closeSocket (int s_fd)
@@ -73,25 +87,27 @@ void closeSocket (int s_fd)
 
 
 #ifdef _WIN32
-void onConn (DWORD WINAPI Callback(LPVOID sender))
+void onConn (DWORD WINAPI Callback(LPVOID sender), void *args)
 {
 	DWORD th_id;
-	HANDLE th_hdl = CreateThread (NULL, 0, Callback, NULL, 0, &th_id);
-
+	HANDLE th_hdl = CreateThread (NULL, 0, Callback, args, 0, &th_id);
+	sleep (1);
 	CloseHandle (th_hdl);
 #else
-void onConn (void *Callback (void *sender))
+void onConn (void *Callback (void *sender), void *args)
 {
 	pthread_t th_id;
-	int r_code = pthread_create (&th_id, NULL, Callback, NULL);
-	if (r_code < 0)
+
+
+	if (pthread_create (&th_id, NULL, Callback, args) < 0)
 	{
 		printf ("Something wrong!\n");
 	}
+	sleep (1);
 #endif
 }
 
-uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
+uint find_str (const char *source, const char *target, uint sLen, uint tLen, uint sIndex)
 {
 	if (sLen == -1)
 		sLen = strlen (source);
@@ -103,7 +119,41 @@ uint find_str (char *source, char *target, uint sLen, uint tLen, uint sIndex)
 	return fIndex == tLen ? sIndex - tLen : -1;
 }
 
-char *afterLast (char *source, char s)
+char *sub_str (char *source, uint st, uint ed)
+{
+	char *result = (char *)malloc (ed - st);
+	for (uint index = st; index < ed; result [index - st] = source [index], index++);
+	result [ed - st] = '\0';
+
+	return result;
+}
+
+char *replace_str (char *source, const char *oldStr, const char *newStr, uint sIndex, bool isAll)
+{
+	uint sLen = strlen (source), oLen = strlen (oldStr), nLen = strlen (newStr), fIndex;
+
+	if ((fIndex = find_str (source, oldStr, sLen, oLen, sIndex)) != -1 && sIndex < sLen)
+	{
+		char *tmp, *result = (char *)malloc (1024);
+		do
+		{
+			strcat (result, tmp = sub_str (source, sIndex, fIndex));
+			free (tmp);
+			strcat (result, newStr);
+			sIndex = fIndex + oLen;
+		} while (isAll && sIndex + oLen && (fIndex = find_str (source, oldStr, sLen, oLen, sIndex)) != -1);
+		if (sIndex + oLen < sLen)
+		{
+			strcat (result, tmp = sub_str (source, sIndex, sLen));
+			free (tmp);
+		}
+		source = result;
+	}
+
+	return source;
+}
+
+char *afterLast (char *source, const char s)
 {
 	uint fIndex = - 1, i = 0;
 	for (; source [i] != '\0'; i++)
@@ -146,3 +196,5 @@ char *readFileFrStr (char *path)
 	fclose (fp);
 	return result;
 }
+
+

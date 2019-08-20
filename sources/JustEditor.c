@@ -61,7 +61,7 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 		tTab = tab_template ("New File", scr);
 		tTab.path = NULL;
 	}
-	else
+	else if (((uchar*)sender)[0] != '&')
 	{
 		tTab = tab_template (afterLast ((uchar*)sender, path_split), scr);
 		tTab.path = (uchar*)sender;
@@ -71,6 +71,10 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 		gtk_text_buffer_set_text (nBuf, nText, -1);
 		gtk_text_view_set_buffer (GTK_TEXT_VIEW (tTab.editor), nBuf);
 		free (nText);
+	}
+	else
+	{
+		tTab = tab_template ((uchar*)sender, scr);
 	}
 	gtk_container_add (GTK_CONTAINER (scr), tTab.editor);
 	gtk_widget_show_all (scr);
@@ -97,59 +101,9 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 	gtk_widget_destroy (chsr);
 }
 
-#ifdef linux
-void *cb(void *sender)
-{
-
-#else
-DWORD WINAPI cb(LPVOID sender)
-{
-#endif
-	int s_fd = initSocket ();
-	g_print ("connecting\n");
-	if (sockConn (s_fd, initAddr ("192.168.0.109", 80)) != 0)
-		goto failed;
-	char s[] = 		"GET / HTTP/1.1\r\n"
-				"Host: 192.168.0.109\r\n"
-				"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0\r\n"
-				"Accept: */*\r\n"
-				"Accept-Language: en-US,en;q=0.5\r\n"
-				"Accept-Encoding: gzip, deflate\r\n"
-				"Connection: close\r\n"
-				"Upgrade-Insecure-Requests: 1\r\n"
-				"Cache-Control: max-age=0\r\n\r\n";
-	char r_str[10240];
-	int r_len;
-	g_print ("connected\n");
-	if (send (s_fd, s, strlen(s), 0) >= 0)
-	{
-		g_print ("sent\n");
-		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
-		{
-			r_str [r_len] = '\0';
-			g_print ("%s", r_str);
-		}
-		g_print ("over\n");
-	}
-	else
-		goto failed;
-	g_print ("_close\n");
-	closeSocket (s_fd);
-#ifdef linux
-	return (void *)0;
-#else
-	return 0;
-#endif
-failed:
-	g_print ("failed\n");
-#ifdef linux
-	return (void *)0;
-#else
-	return -1;
-#endif
-}
-
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 {
-	onConn (cb);
+//	onConn (httpReq);
+	newfBtn_clicked (NULL, (gpointer)"&Request");
 }
+
