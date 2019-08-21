@@ -12,6 +12,7 @@ void Init (GtkApplication *JustEditor, gpointer sender);
 void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
 void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender);
+void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void tabClsBtn_clicked (GtkWidget *tab);
 void tabTitle_pressed (GtkLabel *tabTitle, GdkEventKey *args, GtkWidget *tab);
 void sendBtn_clicked(gpointer sender);
@@ -70,15 +71,49 @@ void tabClsBtn_clicked (GtkWidget *tab)
 	gtk_notebook_detach_tab (GTK_NOTEBOOK (tabCon), tab);
 }
 
+//http response
+#ifdef linux
+void *httpRes (void *sender)
+#else
+DWORD WINAPI httpReq (LPVOID sender)
+#endif
+{
+	int s_fd = listenSocket (*(int *)sender, 4686);
+	if (s_fd >= 0)
+	{
+		g_print ("connected");
+		char s [] = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html;charset=gb2312\r\n"
+				"Connection: close\r\n\r\n<a href=\"http://192.168.0.1\">233</a>0";
+		char r_str [10240];
+		uint r_len;
+		if ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
+		{
+			r_str [r_len] = '\0';
+			g_print ("%s\n", r_str);
+			if (send (s_fd, s, strlen (s), 0) >= 0)
+			{
+				g_print ("sent\n");
+			}
+		}
+		
+/*
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=gb2312
+Connection: close
+*/
+	}
+	g_print ("_close");
+	closeSocket (*(int *)sender);
+}
+
 //http request
 #ifdef linux
 void *httpReq (void *sender)
-{
-
 #else
 DWORD WINAPI httpReq (LPVOID sender)
-{
 #endif
+{
 	int s_fd = initSocket ();
 	g_print ("connecting\n");
 	if (sockConn (s_fd, ((httpRequest *)sender)->target_addr) != 0)

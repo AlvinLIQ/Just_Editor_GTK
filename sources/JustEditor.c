@@ -36,11 +36,15 @@ void Init (GtkApplication *JustEditor, gpointer sender)
 	g_signal_connect (tBtn, "clicked", G_CALLBACK (newfBtn_clicked), NULL);
 	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 1, 1, 1, 1);
 
-	gtk_grid_attach (GTK_GRID (mGrid), label_template ("Request", 0), 0, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (mGrid), label_template ("Network", 0), 0, 2, 1, 1);
 
-	tBtn = button_template ("New Request");
+	tBtn = button_template ("Client");
 	g_signal_connect (tBtn, "clicked", G_CALLBACK (newrBtn_clicked), NULL);
 	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 0, 3, 1, 1);
+
+	tBtn = button_template ("Server");
+	g_signal_connect (tBtn, "clicked", G_CALLBACK (srvBtn_clicked), NULL);
+	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 1, 3, 1, 1);
 	
 	tabCon = gtk_notebook_new ();
 	gtk_notebook_append_page (GTK_NOTEBOOK (tabCon), mGrid, a_page ());
@@ -107,3 +111,8 @@ void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 	newfBtn_clicked (NULL, (gpointer)"&Request");
 }
 
+void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender)
+{
+	int s_fd = initSocket ();
+	onConn (httpRes, &s_fd);
+}

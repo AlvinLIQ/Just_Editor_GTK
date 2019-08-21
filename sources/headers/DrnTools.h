@@ -66,13 +66,17 @@ int sockConn (int s_fd, struct sockaddr_in target_addr)
 int listenSocket(int s_fd, int port)
 {
 	struct sockaddr_in srv_addr = initAddr ("0.0.0.0", port);
-	if (bind (s_fd, (struct sockaddr *)&srv_addr, sizeof (srv_addr)) == -1)
+	int s_len = sizeof (srv_addr);
+	if (bind (s_fd, (struct sockaddr *)&srv_addr, s_len) == -1)
+	{
+		printf ("bind error\n");
 		return -1;
+	}
 
 	if (listen (s_fd, 5) == -1);
-		return -1;
-
-	int s_len = sizeof (srv_addr);
+	{
+		printf ("listen error\n");
+	}
 
 	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);
 }
