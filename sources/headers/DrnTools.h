@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define bool unsigned
 #define true 1
@@ -67,18 +68,22 @@ int listenSocket(int s_fd, int port)
 {
 	struct sockaddr_in srv_addr = initAddr ("0.0.0.0", port);
 	int s_len = sizeof (srv_addr);
-	if (bind (s_fd, (struct sockaddr *)&srv_addr, s_len) == -1)
+	if (bind (s_fd, (struct sockaddr *)&srv_addr, s_len))
 	{
-		printf ("bind error\n");
-		return -1;
+		printf ("bind error, ");
+		goto error;
 	}
 
-	if (listen (s_fd, 5) == -1);
+	if (listen (s_fd, 5) == -1)
 	{
-		printf ("listen error\n");
+		printf ("listen error, ");
+		goto error;
 	}
-
+	printf ("listening\n");
 	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);
+error:
+	printf ("%s:%d\n", strerror(errno),errno);
+	return -1;
 }
 
 void closeSocket (int s_fd)
@@ -151,6 +156,7 @@ char *replace_str (char *source, const char *oldStr, const char *newStr, uint sI
 			strcat (result, tmp = sub_str (source, sIndex, sLen));
 			free (tmp);
 		}
+		free (source);
 		source = result;
 	}
 

@@ -163,9 +163,12 @@ void sendBtn_clicked(gpointer sender)
 
 	gtk_text_buffer_get_start_iter (buffer, &st);
 	gtk_text_buffer_get_end_iter (buffer, &ed);
-//	replace_str (gtk_text_buffer_get_text (buffer, &st, &ed, FALSE), "\n", "\r\n", 0, true);
-	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), replace_str (gtk_text_buffer_get_text (buffer, &st, &ed, FALSE), "\n", "\r\n", 0, true), (void *)g_list_nth_data (tList, 6)};
-
+	char *tmp = gtk_text_buffer_get_text (buffer, &st, &ed, FALSE);
+	char *hbStr = (char *)malloc (strlen (tmp));
+	hbStr [0] = '\0';
+	strcpy (hbStr, tmp);
+	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), replace_str (hbStr, "\n", "\r\n", 0, true), (void *)g_list_nth_data (tList, 6)};
+//	g_print ("%s\n", tReq.hbStr);
 	onConn (httpReq, (void *)&tReq);
 }
 
