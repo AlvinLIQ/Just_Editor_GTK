@@ -49,6 +49,7 @@ void Init (GtkApplication *JustEditor, gpointer sender)
 	tabCon = gtk_notebook_new ();
 	gtk_notebook_append_page (GTK_NOTEBOOK (tabCon), mGrid, a_page ());
 	gtk_container_add (GTK_CONTAINER (mWindow), tabCon);
+	g_signal_connect_swapped (tabCon, "switch-page", G_CALLBACK (tabPage_switched), NULL);
 	css_default ();
 	gtk_widget_show_all (mWindow);
 }
@@ -89,7 +90,8 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
 	GtkWidget *chsr;
-	chsr = gtk_file_chooser_dialog_new ("Open File", GTK_WINDOW (mWindow),  GTK_FILE_CHOOSER_ACTION_OPEN,
+	chsr = gtk_file_chooser_dialog_new ("Open File", GTK_WINDOW (mWindow),  
+					GTK_FILE_CHOOSER_ACTION_OPEN,
 					 "Open", GTK_RESPONSE_ACCEPT,
 					 "Cancel", GTK_RESPONSE_CANCEL, NULL);
 	if (gtk_dialog_run (GTK_DIALOG (chsr)) == GTK_RESPONSE_ACCEPT)

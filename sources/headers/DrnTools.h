@@ -19,6 +19,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 #else
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -100,7 +101,7 @@ void onConn (DWORD WINAPI Callback(LPVOID sender), void *args)
 {
 	DWORD th_id;
 	HANDLE th_hdl = CreateThread (NULL, 0, Callback, args, 0, &th_id);
-	sleep (1);
+	sleep (0);
 	CloseHandle (th_hdl);
 #else
 void onConn (void *Callback (void *sender), void *args)
@@ -112,7 +113,7 @@ void onConn (void *Callback (void *sender), void *args)
 	{
 		printf ("Something wrong!\n");
 	}
-	sleep (1);
+	sleep (0);
 #endif
 }
 

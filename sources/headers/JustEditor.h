@@ -14,8 +14,9 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender);
 void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void tabClsBtn_clicked (GtkWidget *tab);
-void tabTitle_pressed (GtkLabel *tabTitle, GdkEventKey *args, GtkWidget *tab);
+void tabTitle_pressed (GtkWidget *evtBox, GdkEventButton *args, GtkWidget *tab);
 void sendBtn_clicked(gpointer sender);
+void tabPage_switched (gpointer sender, GtkWidget *pContent, int page_num);
 
 GtkWidget *getEditor ()
 {
@@ -38,17 +39,19 @@ GtkWidget *getEditor ()
 
 struct DrnTab tab_template (gchar *title, GtkWidget *pageCon)
 {
-	GtkWidget *clsBtn, *tabTitle;
-	struct DrnTab tabItem = {gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4), title, NULL, title[0] == '&' ? getEditor (): gtk_text_view_new (), NULL};
+	GtkWidget *clsBtn, *tabTitle, *content;
+
+	struct DrnTab tabItem = {gtk_event_box_new (), title, NULL, title[0] == '&' ? getEditor (): gtk_text_view_new (), NULL};
+	gtk_container_add (GTK_CONTAINER (tabItem.content), content = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4));
 
 	tabTitle = label_template (title, 0.01);
-	gtk_container_add (GTK_CONTAINER (tabItem.content), tabTitle);
+	gtk_container_add (GTK_CONTAINER (content), tabTitle);
 
 	clsBtn = button_template ("x");
 	g_signal_connect_swapped (clsBtn, "clicked", G_CALLBACK (tabClsBtn_clicked), pageCon);
-	gtk_container_add (GTK_CONTAINER (tabItem.content), clsBtn);
+	gtk_container_add (GTK_CONTAINER (content), clsBtn);
 
-	g_signal_connect (tabItem.content, "key-press-event", G_CALLBACK (tabTitle_pressed), pageCon);
+	g_signal_connect (tabItem.content, "button-press-event", G_CALLBACK (tabTitle_pressed), pageCon);
 	gtk_widget_show_all (tabItem.content);
 	return tabItem;
 }
@@ -58,12 +61,48 @@ GtkWidget *a_page ()
 	return gtk_label_new ("+");
 }
 
-void tabTitle_pressed (GtkLabel *tabTitle, GdkEventKey *args, GtkWidget *tab)
+void tabPage_switched (gpointer sender, GtkWidget *pContent, int page_num)
 {
-	if (args->keyval == GDK_BUTTON_MIDDLE)
+	if (gtk_notebook_get_n_pages (GTK_NOTEBOOK (tabCon)) == page_num + 1)
+		return;
+
+	char sel_css[128];
+	sprintf (sel_css, 	"notebook tab{"
+				"border:	0 none;"
+				"}"
+				"notebook tab:nth-child(%d){"
+				"border-bottom-width:	2px;"
+				"border-color:		#233;"
+				"border-style:		solid;"
+				"}"
+			 , 2 + page_num);
+	append_css (sel_css);
+
+}
+
+void tabTitle_pressed (GtkWidget *evtBox, GdkEventButton *args, GtkWidget *tab)
+{
+	if (args->button == GDK_BUTTON_MIDDLE)
 		tabClsBtn_clicked (tab);
-	else if (args->keyval == GDK_BUTTON_SECONDARY)
+	else if (args->button == GDK_BUTTON_SECONDARY)
 		g_print ("test\n");
+	else
+		sleep (0);
+/*	else
+	{
+		char sel_css[128];
+		sprintf (sel_css, 	"notebook tab{"
+					"border:	0 none;"
+					"}"
+					"notebook tab:nth-child(%d){"
+					"border-bottom-width:	2px;"
+					"border-color:		#233;"
+					"border-style:		solid;"
+					"}"
+			 , gtk_notebook_page_num (GTK_NOTEBOOK (tabCon), tab) + 2);
+		append_css (sel_css);
+	}
+*/
 }
 
 void tabClsBtn_clicked (GtkWidget *tab)
