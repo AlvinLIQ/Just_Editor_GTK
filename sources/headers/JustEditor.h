@@ -114,7 +114,7 @@ void tabClsBtn_clicked (GtkWidget *tab)
 #ifdef linux
 void *httpRes (void *sender)
 #else
-DWORD WINAPI httpReq (LPVOID sender)
+DWORD WINAPI httpRes (LPVOID sender)
 #endif
 {
 	int s_fd = listenSocket (*(int *)sender, 4686);

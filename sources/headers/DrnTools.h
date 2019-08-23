@@ -69,13 +69,13 @@ int listenSocket(int s_fd, int port)
 {
 	struct sockaddr_in srv_addr = initAddr ("0.0.0.0", port);
 	int s_len = sizeof (srv_addr);
-	if (bind (s_fd, (struct sockaddr *)&srv_addr, s_len))
+	if (bind (s_fd, (struct sockaddr *)&srv_addr, s_len) < 0)
 	{
 		printf ("bind error, ");
 		goto error;
 	}
 
-	if (listen (s_fd, 5) == -1)
+	if (listen (s_fd, 5) < 0)
 	{
 		printf ("listen error, ");
 		goto error;
@@ -101,7 +101,7 @@ void onConn (DWORD WINAPI Callback(LPVOID sender), void *args)
 {
 	DWORD th_id;
 	HANDLE th_hdl = CreateThread (NULL, 0, Callback, args, 0, &th_id);
-	sleep (0);
+	sleep (1);
 	CloseHandle (th_hdl);
 #else
 void onConn (void *Callback (void *sender), void *args)
