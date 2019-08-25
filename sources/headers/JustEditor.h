@@ -27,8 +27,9 @@ GtkWidget *getEditor ()
 	gtk_container_add (GTK_CONTAINER (tEditor), tIP = gtk_entry_new ());
 	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Header & Body"));
 	gtk_container_add (GTK_CONTAINER (tEditor), gtk_text_view_new ());
-
+	gtk_container_add (GTK_CONTAINER (tEditor), gtk_check_button_new_with_label ("Use CrLf"));
 	gtk_container_add (GTK_CONTAINER (tEditor), tItem = button_template ("Send"));
+	
 	g_signal_connect_swapped (tItem, "clicked", G_CALLBACK (sendBtn_clicked), tEditor);
 
 	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Response"));
@@ -206,8 +207,8 @@ void sendBtn_clicked(gpointer sender)
 	char *hbStr = (char *)malloc (strlen (tmp));
 	hbStr [0] = '\0';
 	strcpy (hbStr, tmp);
-	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), replace_str (hbStr, "\n", "\r\n", 0, true), (void *)g_list_nth_data (tList, 6)};
-//	g_print ("%s\n", tReq.hbStr);
+	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), gtk_toggle_button_get_mode (g_list_nth_data (tList, 4)) ? replace_str (hbStr, "\n", "\r\n", 0, true) : hbStr, (void *)g_list_nth_data (tList, 7)};
+
 	onConn (httpReq, (void *)&tReq);
 }
 

@@ -88,6 +88,28 @@ void window_template (GtkWidget *window, gint width, gint height, bool sizeable,
 	gtk_window_set_titlebar (GTK_WINDOW (window), titleBar);
 }
 
+gchar *openFileDialog (GtkWidget *window)
+{
+	GtkWidget *chsr;
+	chsr = gtk_file_chooser_dialog_new ("Open File", GTK_WINDOW (window),  
+					GTK_FILE_CHOOSER_ACTION_OPEN,
+					 "Open", GTK_RESPONSE_ACCEPT,
+					 "Cancel", GTK_RESPONSE_CANCEL, NULL);
+	uchar *filename = NULL;
+	if (gtk_dialog_run (GTK_DIALOG (chsr)) == GTK_RESPONSE_ACCEPT)
+	{
+
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (chsr);
+		filename = gtk_file_chooser_get_filename (chooser);
+
+//		g_print (filename);
+
+//		g_free (filename);
+	}
+	gtk_widget_destroy (chsr);
+	return filename;
+}
+
 void append_css (gchar *css_s)
 {
 	GtkCssProvider *cprdr;
@@ -131,7 +153,7 @@ void css_default ()
 		"background-image:		none;"
 		"background-color:		rgba (32, 57, 57, 0.5);"
 		"}"
-		"button:hover{"
+		"button:hover, selection{"
 		"background-color:		rgba (70, 70, 70, 0.5);"
 		"}"
 		"button:active{"

@@ -89,22 +89,8 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 
 void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
-	GtkWidget *chsr;
-	chsr = gtk_file_chooser_dialog_new ("Open File", GTK_WINDOW (mWindow),  
-					GTK_FILE_CHOOSER_ACTION_OPEN,
-					 "Open", GTK_RESPONSE_ACCEPT,
-					 "Cancel", GTK_RESPONSE_CANCEL, NULL);
-	if (gtk_dialog_run (GTK_DIALOG (chsr)) == GTK_RESPONSE_ACCEPT)
-	{
-		uchar *filename;
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (chsr);
-		filename = gtk_file_chooser_get_filename (chooser);
+	newfBtn_clicked (NULL, (gpointer)openFileDialog (mWindow));
 
-//		g_print (filename);
-		newfBtn_clicked (NULL, (gpointer)filename);
-//		g_free (filename);
-	}
-	gtk_widget_destroy (chsr);
 }
 
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
