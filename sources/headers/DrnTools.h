@@ -60,9 +60,9 @@ int initSocket ()
 	return socket_fd;
 }
 
-int sockConn (int s_fd, struct sockaddr_in target_addr)
+int sockConn (int *s_fd, struct sockaddr_in *target_addr)
 {
-	return connect (s_fd, (struct sockaddr *)&target_addr, sizeof (target_addr));
+	return connect (*s_fd, (struct sockaddr *)target_addr, sizeof (*target_addr));
 }
 
 int listenSocket(int s_fd, int port)
@@ -78,7 +78,7 @@ int listenSocket(int s_fd, int port)
 	if (listen (s_fd, 5) < 0)
 	{
 		printf ("listen error, ");
-		goto error;
+        goto error;
 	}
 	printf ("listening\n");
 	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);
@@ -101,7 +101,6 @@ void onConn (DWORD WINAPI Callback(LPVOID sender), void *args)
 {
 	DWORD th_id;
 	HANDLE th_hdl = CreateThread (NULL, 0, Callback, args, 0, &th_id);
-	sleep (1);
 	CloseHandle (th_hdl);
 #else
 void onConn (void *Callback (void *sender), void *args)
@@ -113,7 +112,8 @@ void onConn (void *Callback (void *sender), void *args)
 	{
 		printf ("Something wrong!\n");
 	}
-	sleep (0);
+//	pthread_detach (th_id);
+	pthread_join (th_id, NULL);
 #endif
 }
 
@@ -131,7 +131,7 @@ uint find_str (const char *source, const char *target, uint sLen, uint tLen, uin
 
 char *sub_str (char *source, uint st, uint ed)
 {
-	char *result = (char *)malloc (ed - st);
+	char *result = (char *)malloc (ed - st + 1);
 	for (uint index = st; index < ed; result [index - st] = source [index], index++);
 	result [ed - st] = '\0';
 
@@ -149,6 +149,7 @@ char *replace_str (char *source, const char *oldStr, const char *newStr, uint sI
 		{
 			strcat (result, tmp = sub_str (source, sIndex, fIndex));
 			free (tmp);
+			tmp = NULL;
 			strcat (result, newStr);
 			sIndex = fIndex + oLen;
 		} while (isAll && sIndex + oLen && (fIndex = find_str (source, oldStr, sLen, oLen, sIndex)) != -1);
@@ -156,6 +157,7 @@ char *replace_str (char *source, const char *oldStr, const char *newStr, uint sI
 		{
 			strcat (result, tmp = sub_str (source, sIndex, sLen));
 			free (tmp);
+			tmp = NULL;
 		}
 		free (source);
 		source = result;
@@ -172,6 +174,14 @@ char *afterLast (char *source, const char s)
 			fIndex = i;
 
 	return fIndex == -1 ? source : source + fIndex + 1;
+}
+
+char *combine_str (char *s1, char *s2)
+{
+	char result[10240];
+	sprintf (result, "%s%s", s1, s2);
+	char *presult = result;
+	return presult;
 }
 /*
 void writeFile (FILE *fp, char *wText)

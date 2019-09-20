@@ -4,7 +4,6 @@ int main (int argc, char **argv)
 {
 	int status;
 	GtkApplication *JustEditor;
-
 	JustEditor = gtk_application_new ("Just.Editor", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect (JustEditor, "activate", G_CALLBACK (Init), NULL);
 	status = g_application_run (G_APPLICATION (JustEditor), argc, argv);
@@ -101,6 +100,5 @@ void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 
 void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
-	int s_fd = initSocket ();
-	onConn (httpRes, &s_fd);
+	onConn (httpRes, NULL);
 }

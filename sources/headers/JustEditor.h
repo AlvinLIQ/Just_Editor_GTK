@@ -118,7 +118,7 @@ void *httpRes (void *sender)
 DWORD WINAPI httpRes (LPVOID sender)
 #endif
 {
-	int s_fd = listenSocket (*(int *)sender, 4686);
+	int s_fd = listenSocket (initSocket (), 4686);
 	if (s_fd >= 0)
 	{
 		g_print ("connected");
@@ -144,7 +144,7 @@ Connection: close
 */
 	}
 	g_print ("_close");
-	closeSocket (*(int *)sender);
+	closeSocket (s_fd);
 }
 
 //http request
@@ -156,7 +156,7 @@ DWORD WINAPI httpReq (LPVOID sender)
 {
 	int s_fd = initSocket ();
 	g_print ("connecting\n");
-	if (sockConn (s_fd, ((httpRequest *)sender)->target_addr) != 0)
+	if (sockConn (&s_fd, &((httpRequest *)sender)->target_addr) != 0)
 		goto failed;
 	char *s = ((httpRequest *)sender)->hbStr;
 
@@ -169,10 +169,16 @@ DWORD WINAPI httpReq (LPVOID sender)
 		s = NULL;
 		((httpRequest *)sender)->hbStr = NULL;
 		g_print ("sent\n");
+		gtk_label_set_text (((httpRequest *)sender)->resBox, "");
+
 		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
-			gtk_label_set_text (((httpRequest *)sender)->resBox, r_str);
+			g_print (r_str);
+			if ((s = (char*)gtk_label_get_text (((httpRequest *)sender)->resBox))[0] == 0)
+				gtk_label_set_text (((httpRequest *)sender)->resBox, combine_str (s, r_str));
+			else
+				gtk_label_set_text (((httpRequest *)sender)->resBox, r_str);
 		}
 		g_print ("over\n");
 	}
