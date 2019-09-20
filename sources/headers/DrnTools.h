@@ -112,8 +112,8 @@ void onConn (void *Callback (void *sender), void *args)
 	{
 		printf ("Something wrong!\n");
 	}
-//	pthread_detach (th_id);
-	pthread_join (th_id, NULL);
+	pthread_detach (th_id);
+//	pthread_join (th_id, NULL);
 #endif
 }
 

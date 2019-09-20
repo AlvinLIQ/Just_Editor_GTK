@@ -6,6 +6,8 @@
 #define path_split '\\'
 #endif
 
+httpRequest reqArgs;
+
 GtkWidget *mWindow, *tabCon;
 
 void Init (GtkApplication *JustEditor, gpointer sender);
@@ -154,11 +156,12 @@ void *httpReq (void *sender)
 DWORD WINAPI httpReq (LPVOID sender)
 #endif
 {
+	httpRequest *thisReq = &reqArgs;
 	int s_fd = initSocket ();
 	g_print ("connecting\n");
-	if (sockConn (&s_fd, &((httpRequest *)sender)->target_addr) != 0)
+	if (sockConn (&s_fd, &thisReq->target_addr) != 0)
 		goto failed;
-	char *s = ((httpRequest *)sender)->hbStr;
+	char *s = thisReq->hbStr;
 
 	char r_str[10240];
 	int r_len;
@@ -167,18 +170,18 @@ DWORD WINAPI httpReq (LPVOID sender)
 	{
 		free (s);
 		s = NULL;
-		((httpRequest *)sender)->hbStr = NULL;
+		thisReq->hbStr = NULL;
 		g_print ("sent\n");
-		gtk_label_set_text (((httpRequest *)sender)->resBox, "");
+		gtk_label_set_text (thisReq->resBox, "");
 
 		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
 			g_print (r_str);
-			if ((s = (char*)gtk_label_get_text (((httpRequest *)sender)->resBox))[0] == 0)
-				gtk_label_set_text (((httpRequest *)sender)->resBox, combine_str (s, r_str));
+			if ((s = (char*)gtk_label_get_text (thisReq->resBox))[0] == 0)
+				gtk_label_set_text (thisReq->resBox, combine_str (s, r_str));
 			else
-				gtk_label_set_text (((httpRequest *)sender)->resBox, r_str);
+				gtk_label_set_text (thisReq->resBox, r_str);
 		}
 		g_print ("over\n");
 	}
@@ -214,6 +217,7 @@ void sendBtn_clicked(gpointer sender)
 	hbStr [0] = '\0';
 	strcpy (hbStr, tmp);
 	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), gtk_toggle_button_get_mode (g_list_nth_data (tList, 4)) ? replace_str (hbStr, "\n", "\r\n", 0, true) : hbStr, (void *)g_list_nth_data (tList, 7)};
+	reqArgs = tReq;
 
 	onConn (httpReq, (void *)&tReq);
 }
