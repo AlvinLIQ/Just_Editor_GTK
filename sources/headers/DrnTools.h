@@ -78,7 +78,7 @@ int listenSocket(int s_fd, int port)
 	if (listen (s_fd, 5) < 0)
 	{
 		printf ("listen error, ");
-        goto error;
+		goto error;
 	}
 	printf ("listening\n");
 	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);

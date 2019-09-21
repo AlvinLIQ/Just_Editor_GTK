@@ -7,6 +7,7 @@
 #endif
 
 httpRequest reqArgs;
+int mPort;
 
 GtkWidget *mWindow, *tabCon;
 
@@ -105,7 +106,7 @@ void *httpRes (void *sender)
 DWORD WINAPI httpRes (LPVOID sender)
 #endif
 {
-	int s_fd = listenSocket (initSocket (), 4686);
+	int s_fd = listenSocket (initSocket (), mPort);
 	if (s_fd >= 0)
 	{
 		g_print ("connected");
@@ -207,3 +208,8 @@ void sendBtn_clicked(gpointer sender)
 	onConn (httpReq, (void *)&tReq);
 }
 
+void startServer (GtkWidget *portEntry)
+{
+	mPort = atoi (gtk_entry_get_text (GTK_ENTRY (portEntry)));
+	onConn (httpRes, NULL);
+}

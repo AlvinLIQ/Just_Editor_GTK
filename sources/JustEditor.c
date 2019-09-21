@@ -100,6 +100,6 @@ void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 
 void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
-	indialog_template ("sad", "dsa", "asdfsdfsads");
+	indialog_template ("Server Configuration", "Please input your port", "OK", &startServer);
 //	onConn (httpRes, NULL);
 }

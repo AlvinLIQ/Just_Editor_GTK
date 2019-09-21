@@ -1,6 +1,7 @@
 #include "DrnTools.h"
 #include <gtk/gtk.h>
 
+//DrnTab
 struct DrnTab;
 #define TabPtr struct DrnTab*
 #define DRN_TAB (x) (TabPtr)x
@@ -38,6 +39,23 @@ void RemoveTabAfter (TabPtr tItem)
 	TabPtr tmp = tItem->nxtPtr;
 	tItem->nxtPtr = tItem->nxtPtr->nxtPtr;
 	free (tmp);
+}
+
+//Event Callback
+/*
+struct DrnArg
+{
+	gint value;
+	void (*callbck) (GtkWidget*);
+};
+*/
+void keydown_template (GtkWidget *tItem, GdkEventKey *args, gpointer sender)
+{
+
+	if (args->keyval == GDK_KEY_KP_Enter && sender != NULL)
+	{
+		((void (*) (GtkWidget*))sender) (tItem);
+	}
 }
 
 GtkWidget *button_template (gchar *bls)
@@ -88,11 +106,23 @@ void window_template (GtkWidget *window, gint width, gint height, bool sizeable,
 	gtk_window_set_titlebar (GTK_WINDOW (window), titleBar);
 }
 
-GtkWidget *indialog_template (gchar *title, gchar *subTitle, gchar *btnLabel)
+GtkWidget *indialog_template (gchar *title, gchar *subTitle, gchar *btnLabel, void (*callbck) (GtkWidget*))
 {
-	GtkWidget *tDialog, *tBtn; 
+	GtkWidget *tDialog, *tBox, *tBtn, *tText; 
 	tDialog = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	window_template (tDialog, 300, 200, true, title);
+	window_template (tDialog, 200, 300, false, title);
+
+	tBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 20);
+	gtk_container_add (GTK_CONTAINER (tBox), gtk_label_new (subTitle));
+	
+	gtk_container_add (GTK_CONTAINER (tBox), tText = gtk_entry_new ());
+	g_signal_connect (tText, "key-release-event", G_CALLBACK (keydown_template), callbck);
+	
+	tBtn = button_template (btnLabel);
+	g_signal_connect_swapped (tBtn, "clicked", G_CALLBACK (callbck), tText);
+	gtk_container_add (GTK_CONTAINER (tBox), tBtn);
+	gtk_container_add (GTK_CONTAINER (tDialog), tBox);
+	
 	gtk_widget_show_all (tDialog);
 	return tDialog;
 }
