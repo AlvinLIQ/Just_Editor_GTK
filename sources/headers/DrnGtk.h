@@ -78,7 +78,7 @@ void window_template (GtkWidget *window, gint width, gint height, bool sizeable,
 
 	titleBar = gtk_grid_new ();
 	gtk_grid_set_column_homogeneous (GTK_GRID (titleBar), true);
-	gtk_grid_attach (GTK_GRID (titleBar), label_template ("Just Editor", 0.01), 0, 0, 87, 1);
+	gtk_grid_attach (GTK_GRID (titleBar), label_template (title, 0.01), 0, 0, 87, 1);
 	gtk_grid_attach (GTK_GRID (titleBar), tBox, 87, 0, 13, 1);
 //	gtk_container_add (GTK_CONTAINER (titleBar), tBox);
 
@@ -86,6 +86,15 @@ void window_template (GtkWidget *window, gint width, gint height, bool sizeable,
 		gtk_window_set_title (GTK_WINDOW (window), title);
 	
 	gtk_window_set_titlebar (GTK_WINDOW (window), titleBar);
+}
+
+GtkWidget *indialog_template (gchar *title, gchar *subTitle, gchar *btnLabel)
+{
+	GtkWidget *tDialog, *tBtn; 
+	tDialog = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	window_template (tDialog, 300, 200, true, title);
+	gtk_widget_show_all (tDialog);
+	return tDialog;
 }
 
 gchar *openFileDialog (GtkWidget *window)

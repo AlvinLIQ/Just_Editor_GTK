@@ -100,5 +100,6 @@ void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 
 void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 {
-	onConn (httpRes, NULL);
+	indialog_template ("sad", "dsa", "asdfsdfsads");
+//	onConn (httpRes, NULL);
 }

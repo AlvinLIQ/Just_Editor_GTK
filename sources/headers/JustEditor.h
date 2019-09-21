@@ -90,22 +90,7 @@ void tabTitle_pressed (GtkWidget *evtBox, GdkEventButton *args, GtkWidget *tab)
 	else if (args->button == GDK_BUTTON_SECONDARY)
 		g_print ("test\n");
 	else
-		sleep (0);
-/*	else
-	{
-		char sel_css[128];
-		sprintf (sel_css, 	"notebook tab{"
-					"border:	0 none;"
-					"}"
-					"notebook tab:nth-child(%d){"
-					"border-bottom-width:	2px;"
-					"border-color:		#233;"
-					"border-style:		solid;"
-					"}"
-			 , gtk_notebook_page_num (GTK_NOTEBOOK (tabCon), tab) + 2);
-		append_css (sel_css);
-	}
-*/
+		gtk_notebook_set_current_page (GTK_NOTEBOOK (tabCon), gtk_notebook_page_num (GTK_NOTEBOOK (tabCon), tab));
 }
 
 void tabClsBtn_clicked (GtkWidget *tab)
@@ -132,7 +117,7 @@ DWORD WINAPI httpRes (LPVOID sender)
 		if ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
-			g_print ("%s\n", r_str);
+			printf ("%s\n", r_str);
 			if (send (s_fd, s, strlen (s), 0) >= 0)
 			{
 				g_print ("sent\n");
@@ -178,7 +163,7 @@ DWORD WINAPI httpReq (LPVOID sender)
 		{
 			r_str [r_len] = '\0';
 			g_print (r_str);
-			if ((s = (char*)gtk_label_get_text (thisReq->resBox))[0] == 0)
+			if ((s = (char*)gtk_label_get_text (thisReq->resBox))[0] != 0)
 				gtk_label_set_text (thisReq->resBox, combine_str (s, r_str));
 			else
 				gtk_label_set_text (thisReq->resBox, r_str);
