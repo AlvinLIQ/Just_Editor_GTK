@@ -23,6 +23,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <pthread.h>
 
@@ -44,14 +45,20 @@ struct http_res
 	void *resBox;
 };
 
-struct sockaddr_in initAddr (const char *ip, int port)
+struct sockaddr_in initAddr_shd (long unsigned int ip, int port)
 {
 	struct sockaddr_in target_addr;
 	target_addr.sin_family = AF_INET;
-	target_addr.sin_addr.s_addr = inet_addr (ip);
+	target_addr.sin_addr.s_addr = ip;
 	target_addr.sin_port = htons (port);
 
 	return target_addr;
+}
+
+
+struct sockaddr_in initAddr (const char *ip, int port)
+{
+	return initAddr_shd (inet_addr(ip), port);
 }
 
 int initSocket ()
@@ -87,7 +94,6 @@ int listenSocket(int s_fd, int port)
 		printf ("listen error, ");
 		goto error;
 	}
-	printf ("listening\n");
 	return accept (s_fd, (struct sockaddr *)&srv_addr, &s_len);
 error:
 	printf ("%s:%d\n", strerror(errno),errno);

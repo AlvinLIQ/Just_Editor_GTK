@@ -11,11 +11,13 @@ void *readPip (void *sender);
 #else
 DWORD WINAPI readPip (LPVOID sender);
 #endif
+void closePip (int *s_fd);
 
 httpRequest reqArgs;
-httpResponse repArgs;
+httpResponse resArgs;
 int mPort;
 FILE *mPip;
+u_long shd_addr;
 
 GtkWidget *mWindow, *tabCon;
 
@@ -24,36 +26,70 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender);
 void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender);
 void srvBtn_clicked (GtkWidget *openfBtn, gpointer sender);
+void shdBtn_clicked (GtkWidget *openfBtn, gpointer sender);
 void tabClsBtn_clicked (GtkWidget *tab);
 void tabTitle_pressed (GtkWidget *evtBox, GdkEventButton *args, GtkWidget *tab);
 void sendBtn_clicked(gpointer sender);
 void tabPage_switched (gpointer sender, GtkWidget *pContent, int page_num);
 
-GtkWidget *getEditor ()
+
+void sendFrEntry (GtkEntry *entry, GdkEventKey *args, gpointer s_fd)
+{
+	if (args->keyval == GDK_KEY_Return || args->keyval == GDK_KEY_KP_Enter)
+	{
+		const gchar *tmp = gtk_entry_get_text (entry);
+		uint s_len = strlen (tmp);
+		if (s_len > 0 && send (*(int*)s_fd, tmp, strlen (tmp), 0) >= 0)
+		{
+			gtk_entry_set_text (entry, "");
+		}
+	}
+}
+
+GtkWidget *getEditor (gchar e_num)
 {
 	GtkWidget *tEditor, *tItem, *tIP;
-	tEditor = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
 
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("IP Address"));
-	gtk_container_add (GTK_CONTAINER (tEditor), tIP = gtk_entry_new ());
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Header & Body"));
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_text_view_new ());
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_check_button_new_with_label ("Use CrLf"));
-	gtk_container_add (GTK_CONTAINER (tEditor), tItem = button_template ("Send"));
-	
-	g_signal_connect_swapped (tItem, "clicked", G_CALLBACK (sendBtn_clicked), tEditor);
+	switch (e_num)
+	{
+	case 'R':
+		tEditor = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
 
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Response"));
-	gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new (""));
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("IP Address"));
+		gtk_container_add (GTK_CONTAINER (tEditor), tIP = gtk_entry_new ());
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Header & Body"));
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_text_view_new ());
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_check_button_new_with_label ("Use CrLf"));
+		gtk_container_add (GTK_CONTAINER (tEditor), tItem = button_template ("Send"));
+		
+		g_signal_connect_swapped (tItem, "clicked", G_CALLBACK (sendBtn_clicked), tEditor);
+
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Response"));
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new (""));
+	break;
+	case 'S':
+		tEditor = gtk_grid_new ();
+		gtk_grid_set_column_homogeneous (GTK_GRID (tEditor), true);
+		gtk_grid_set_row_homogeneous (GTK_GRID (tEditor), true);
+
+		gtk_grid_attach (GTK_GRID (tEditor), gtk_label_new ("Shell"), 0, 0, 1, 1);
+		gtk_grid_attach (GTK_GRID (tEditor), resArgs.resBox = gtk_label_new (""), 0, 1, 1, 7);
+		gtk_grid_attach (GTK_GRID (tEditor), gtk_entry_new (), 0, 9, 1, 1);
+
+		resArgs.hbStr = NULL;
+	break;
+	}
+
 	
 	return tEditor;
 }
+
 
 struct DrnTab tab_template (gchar *title, GtkWidget *pageCon)
 {
 	GtkWidget *clsBtn, *tabTitle, *content;
 
-	struct DrnTab tabItem = {gtk_event_box_new (), title, NULL, title[0] == '&' ? getEditor (): gtk_text_view_new (), NULL};
+	struct DrnTab tabItem = {gtk_event_box_new (), title, NULL, title[0] == '&' ? getEditor (title[1]): gtk_text_view_new (), NULL};
 	gtk_container_add (GTK_CONTAINER (tabItem.content), content = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4));
 
 	tabTitle = label_template (title, 0.01);
@@ -110,7 +146,7 @@ void tabClsBtn_clicked (GtkWidget *tab)
 bool getMsg(httpResponse *thisReq, int s_fd, char *r_str)
 {
 	char *s;
-	uint r_len;
+	int r_len;
 	void *r_Box;
 	if (thisReq->hbStr != NULL)
 	{
@@ -133,7 +169,7 @@ bool getMsg(httpResponse *thisReq, int s_fd, char *r_str)
 			r_str [r_len] = '\0';
 			if ((s = (char*)gtk_label_get_text (r_Box))[0] != 0)
 			{
-				if ((r_len = r_len + strlen (s) - 10240) > 0) //You'd better not overflow!
+				if ((r_len = (r_len + strlen (s) - 10240)) > 0) //You'd better not overflow!
 				{
 					s = s + r_len;
 				}
@@ -164,12 +200,18 @@ void *httpRes (void *sender)
 DWORD WINAPI httpRes (LPVOID sender)
 #endif
 {
+	g_print ("listening\n");
 	int s_fd = listenSocket (initSocket (), mPort);
 	if (s_fd >= 0)
 	{
 		g_print ("connected");
+		if (resArgs.resBox != NULL)
+		{
+			g_signal_connect (gtk_grid_get_child_at (GTK_GRID (gtk_widget_get_parent (resArgs.resBox)), 0, 9), "key-release-event", G_CALLBACK (sendFrEntry), (gpointer)&s_fd);
+			g_signal_connect_swapped (resArgs.resBox, "destroy", G_CALLBACK (closePip), (gpointer)&s_fd);
+		}
 		char r_str[10240];
-		getMsg (&repArgs, s_fd, r_str);
+		getMsg (&resArgs, s_fd, r_str);
 	}
 /*
 HTTP/1.1 200 OK
@@ -240,6 +282,13 @@ void startServer (GtkWidget *portEntry)
 	onConn (httpRes, NULL);
 }
 
+void closePip (int *s_fd)
+{
+	closeSocket (*s_fd);
+	if (mPip == NULL)
+		mPip = fopen ("", "r"); 
+}
+
 #ifdef linux
 void *readPip (void *sender)
 #else
@@ -257,11 +306,20 @@ DWORD WINAPI readPip (LPVOID sender)
 		while (fgets (pBuf ,255, pp) != NULL && (s_st = send (s_fd, pBuf, strlen (pBuf), 0)) >= 0);
 		pclose (pp);
 		mPip = NULL;
-		send (s_fd, "\ndone!\n", 7, 0);
+//		send (s_fd, "\ndone!\n", 7, 0);
 	} while (s_st >= 0);
 }
 
-void consolePipe (GtkWidget *sender)
+void consolePipe (void)
 {
-	
+	reqArgs.target_addr = initAddr_shd (shd_addr, 9638);
+	reqArgs.hbStr = NULL;
+	reqArgs.resBox = NULL;
+	onConn (httpReq, NULL);
+}
+
+void shdServer (GtkWidget *sender)
+{
+	newfBtn_clicked (NULL, (gpointer)"&Shadow");
+	startServer (sender);
 }

@@ -51,14 +51,14 @@ struct DrnArg
 */
 void keydown_template (GtkWidget *tItem, GdkEventKey *args, gpointer sender)
 {
-
-	if (args->keyval == GDK_KEY_KP_Enter && sender != NULL)
+	if (args->keyval == GDK_KEY_Return || args->keyval == GDK_KEY_KP_Enter && sender != NULL)
 	{
 		((void (*) (GtkWidget*))sender) (tItem);
+		gtk_widget_destroy (gtk_widget_get_parent (gtk_widget_get_parent (tItem)));
 	}
 }
 
-GtkWidget *button_template (gchar *bls)
+GtkWidget *button_template (const gchar *bls)
 {
 	GtkWidget *btn_tpl;
 	btn_tpl = gtk_button_new_with_label (bls);
@@ -67,7 +67,7 @@ GtkWidget *button_template (gchar *bls)
 	return btn_tpl;
 }
 
-GtkWidget *label_template (gchar *lst, gfloat x)
+GtkWidget *label_template (const gchar *lst, gfloat x)
 {
 	GtkWidget *lbl_tpl;
 	lbl_tpl = gtk_label_new (lst);
@@ -76,7 +76,7 @@ GtkWidget *label_template (gchar *lst, gfloat x)
 	return lbl_tpl;
 }
 
-void window_template (GtkWidget *window, gint width, gint height, bool sizeable, gchar *title)
+void window_template (GtkWidget *window, gint width, gint height, bool sizeable, const gchar *title)
 {
 	gtk_window_set_default_size (GTK_WINDOW (window), width, height);
 	gtk_window_set_resizable (GTK_WINDOW (window), sizeable);
@@ -106,7 +106,7 @@ void window_template (GtkWidget *window, gint width, gint height, bool sizeable,
 	gtk_window_set_titlebar (GTK_WINDOW (window), titleBar);
 }
 
-GtkWidget *indialog_template (gchar *title, gchar *subTitle, gchar *btnLabel, void (*callbck) (GtkWidget*))
+GtkWidget *indialog_template (const gchar *title, gchar *subTitle, gchar *btnLabel, void (*callbck) (GtkWidget*))
 {
 	GtkWidget *tDialog, *tBox, *tBtn, *tText; 
 	tDialog = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -120,6 +120,8 @@ GtkWidget *indialog_template (gchar *title, gchar *subTitle, gchar *btnLabel, vo
 	
 	tBtn = button_template (btnLabel);
 	g_signal_connect_swapped (tBtn, "clicked", G_CALLBACK (callbck), tText);
+	g_signal_connect_swapped (tBtn, "clicked", G_CALLBACK (gtk_widget_destroy), tDialog);
+
 	gtk_container_add (GTK_CONTAINER (tBox), tBtn);
 	gtk_container_add (GTK_CONTAINER (tDialog), tBox);
 	
