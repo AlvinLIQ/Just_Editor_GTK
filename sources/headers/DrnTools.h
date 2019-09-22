@@ -29,10 +29,17 @@
 #endif
 
 #define httpRequest struct http_req
+#define httpResponse struct http_res
 
 struct http_req
 {
+	char *hbStr;
+	void *resBox;
 	struct sockaddr_in target_addr;
+};
+
+struct http_res
+{
 	char *hbStr;
 	void *resBox;
 };

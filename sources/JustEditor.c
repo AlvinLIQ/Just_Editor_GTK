@@ -5,8 +5,8 @@ int main (int argc, char **argv)
 	int status;
 	GtkApplication *JustEditor;
 	JustEditor = gtk_application_new ("Just.Editor", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect (JustEditor, "activate", G_CALLBACK (Init), NULL);
-	status = g_application_run (G_APPLICATION (JustEditor), argc, argv);
+	g_signal_connect (JustEditor, "activate", G_CALLBACK (Init), argc == 2 ? argv[1] : argv[0]);
+	status = g_application_run (G_APPLICATION (JustEditor), 1, argv);
 
 	g_object_unref (JustEditor);
 	return status;
@@ -44,6 +44,13 @@ void Init (GtkApplication *JustEditor, gpointer sender)
 	tBtn = button_template ("Server");
 	g_signal_connect (tBtn, "clicked", G_CALLBACK (srvBtn_clicked), NULL);
 	gtk_grid_attach (GTK_GRID (mGrid), tBtn, 1, 3, 1, 1);
+	
+	if (strcmp (sender, "_shadow") == 0)
+	{
+		tBtn = button_template ("_shadow");
+		g_signal_connect (tBtn, "clicked", G_CALLBACK (consolePipe), NULL);
+		gtk_grid_attach (GTK_GRID (mGrid), tBtn, 0, 4, 1, 1);
+	}
 	
 	tabCon = gtk_notebook_new ();
 	gtk_notebook_append_page (GTK_NOTEBOOK (tabCon), mGrid, a_page ());
@@ -94,7 +101,6 @@ void openfBtn_clicked (GtkWidget *openfBtn, gpointer sender)
 
 void newrBtn_clicked (GtkWidget *newrBtn, gpointer sender)
 {
-//	onConn (httpReq);
 	newfBtn_clicked (NULL, (gpointer)"&Request");
 }
 

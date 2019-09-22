@@ -6,8 +6,16 @@
 #define path_split '\\'
 #endif
 
+#ifdef linux
+void *readPip (void *sender);
+#else
+DWORD WINAPI readPip (LPVOID sender);
+#endif
+
 httpRequest reqArgs;
+httpResponse repArgs;
 int mPort;
+FILE *mPip;
 
 GtkWidget *mWindow, *tabCon;
 
@@ -99,6 +107,56 @@ void tabClsBtn_clicked (GtkWidget *tab)
 	gtk_notebook_detach_tab (GTK_NOTEBOOK (tabCon), tab);
 }
 
+bool getMsg(httpResponse *thisReq, int s_fd, char *r_str)
+{
+	char *s;
+	uint r_len;
+	void *r_Box;
+	if (thisReq->hbStr != NULL)
+	{
+		s = thisReq->hbStr;
+		if (send (s_fd, s, strlen(s), 0) >= 0)
+		{
+			free (s);
+			s = NULL;
+			thisReq->hbStr = NULL;
+			g_print ("sent\n");
+		}
+		else
+			return 1;
+	}
+	if ((r_Box = thisReq->resBox) != NULL)
+	{
+		gtk_label_set_text (r_Box, "");
+		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
+		{
+			r_str [r_len] = '\0';
+			if ((s = (char*)gtk_label_get_text (r_Box))[0] != 0)
+			{
+				if ((r_len = r_len + strlen (s) - 10240) > 0) //You'd better not overflow!
+				{
+					s = s + r_len;
+				}
+				gtk_label_set_text (r_Box, combine_str (s, r_str));
+			}
+			else
+				gtk_label_set_text (r_Box, r_str);
+		}
+	}
+	else
+	{
+		mPort = s_fd;
+		mPip = NULL;
+		onConn (readPip, NULL);
+		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
+		{
+			r_str [r_len] = '\0';
+			mPip = popen (r_str, "r");
+		}
+	}
+	return 0;
+}
+
 //http response
 #ifdef linux
 void *httpRes (void *sender)
@@ -110,27 +168,15 @@ DWORD WINAPI httpRes (LPVOID sender)
 	if (s_fd >= 0)
 	{
 		g_print ("connected");
-		char s [] = "HTTP/1.1 200 OK\r\n"
-				"Content-Type: text/html;charset=gb2312\r\n"
-				"Connection: close\r\n\r\n<a href=\"http://192.168.0.1\">233</a>0";
-		char r_str [10240];
-		uint r_len;
-		if ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
-		{
-			r_str [r_len] = '\0';
-			printf ("%s\n", r_str);
-			if (send (s_fd, s, strlen (s), 0) >= 0)
-			{
-				g_print ("sent\n");
-			}
-		}
-		
+		char r_str[10240];
+		getMsg (&repArgs, s_fd, r_str);
+	}
 /*
 HTTP/1.1 200 OK
 Content-Type: text/html;charset=gb2312
 Connection: close
 */
-	}
+
 	g_print ("_close");
 	closeSocket (s_fd);
 }
@@ -147,33 +193,13 @@ DWORD WINAPI httpReq (LPVOID sender)
 	g_print ("connecting\n");
 	if (sockConn (&s_fd, &thisReq->target_addr) != 0)
 		goto failed;
-	char *s = thisReq->hbStr;
 
 	char r_str[10240];
-	int r_len;
 	g_print ("connected\n");
-	if (send (s_fd, s, strlen(s), 0) >= 0)
-	{
-		free (s);
-		s = NULL;
-		thisReq->hbStr = NULL;
-		g_print ("sent\n");
-		gtk_label_set_text (thisReq->resBox, "");
-
-		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
-		{
-			r_str [r_len] = '\0';
-			g_print (r_str);
-			if ((s = (char*)gtk_label_get_text (thisReq->resBox))[0] != 0)
-				gtk_label_set_text (thisReq->resBox, combine_str (s, r_str));
-			else
-				gtk_label_set_text (thisReq->resBox, r_str);
-		}
-		g_print ("over\n");
-	}
-	else
+	if (getMsg ((httpResponse*)thisReq, s_fd, r_str))
 		goto failed;
-	g_print ("_close\n");
+	
+	g_print ("over\n_close\n");
 	closeSocket (s_fd);
 #ifdef linux
 	return (void *)0;
@@ -202,7 +228,7 @@ void sendBtn_clicked(gpointer sender)
 	char *hbStr = (char *)malloc (strlen (tmp));
 	hbStr [0] = '\0';
 	strcpy (hbStr, tmp);
-	httpRequest tReq = {initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80), gtk_toggle_button_get_mode (g_list_nth_data (tList, 4)) ? replace_str (hbStr, "\n", "\r\n", 0, true) : hbStr, (void *)g_list_nth_data (tList, 7)};
+	httpRequest tReq = {gtk_toggle_button_get_mode (g_list_nth_data (tList, 4)) ? replace_str (hbStr, "\n", "\r\n", 0, true) : hbStr, (void *)g_list_nth_data (tList, 7), initAddr (gtk_entry_get_text (g_list_nth_data (tList, 1)), 80)};
 	reqArgs = tReq;
 
 	onConn (httpReq, (void *)&tReq);
@@ -212,4 +238,30 @@ void startServer (GtkWidget *portEntry)
 {
 	mPort = atoi (gtk_entry_get_text (GTK_ENTRY (portEntry)));
 	onConn (httpRes, NULL);
+}
+
+#ifdef linux
+void *readPip (void *sender)
+#else
+DWORD WINAPI readPip (LPVOID sender)
+#endif
+{
+	int s_fd = mPort, s_st;
+	FILE *pp;
+	char pBuf[255];
+
+	do
+	{
+		while (mPip == NULL);
+		pp = mPip;
+		while (fgets (pBuf ,255, pp) != NULL && (s_st = send (s_fd, pBuf, strlen (pBuf), 0)) >= 0);
+		pclose (pp);
+		mPip = NULL;
+		send (s_fd, "\ndone!\n", 7, 0);
+	} while (s_st >= 0);
+}
+
+void consolePipe (GtkWidget *sender)
+{
+	
 }
