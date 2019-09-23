@@ -76,6 +76,16 @@ GtkWidget *label_template (const gchar *lst, gfloat x)
 	return lbl_tpl;
 }
 
+GtkWidget *text_view_template (bool editable)
+{
+	GtkWidget *txt_tpl;
+	txt_tpl = gtk_text_view_new ();
+	gtk_text_view_set_editable (GTK_TEXT_VIEW (txt_tpl), editable);
+	gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (txt_tpl), editable);
+	
+	return txt_tpl;
+}
+
 void window_template (GtkWidget *window, gint width, gint height, bool sizeable, const gchar *title)
 {
 	gtk_window_set_default_size (GTK_WINDOW (window), width, height);

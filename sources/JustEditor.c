@@ -70,16 +70,19 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 {
 	GtkWidget *scr;
 
-	scr = gtk_scrolled_window_new (GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
 
 	struct DrnTab tTab;
 	if (sender == NULL)
 	{
+		scr = gtk_scrolled_window_new (GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
+
 		tTab = tab_template ("New File", scr);
 		tTab.path = NULL;
 	}
 	else if (((uchar*)sender)[0] != '&')
 	{
+		scr = gtk_scrolled_window_new (GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
+
 		tTab = tab_template (afterLast ((uchar*)sender, path_split), scr);
 		tTab.path = (uchar*)sender;
 		uchar *nText = readFileFrStr (tTab.path);
@@ -91,6 +94,7 @@ void newfBtn_clicked (GtkWidget *newfBtn, gpointer sender)
 	}
 	else
 	{
+		scr = gtk_stack_new ();
 		tTab = tab_template ((uchar*)sender, scr);
 	}
 	gtk_container_add (GTK_CONTAINER (scr), tTab.editor);

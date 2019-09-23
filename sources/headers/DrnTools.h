@@ -100,9 +100,10 @@ error:
 	return -1;
 }
 
-void closeSocket (int s_fd)
+void closeSocket (int *s_fd)
 {
-	close (s_fd);
+	printf ("_close\n");
+	close (*s_fd);
 #ifdef _WIN32
 	WSACleanup ();
 #endif

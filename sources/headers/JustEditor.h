@@ -65,16 +65,21 @@ GtkWidget *getEditor (gchar e_num)
 		g_signal_connect_swapped (tItem, "clicked", G_CALLBACK (sendBtn_clicked), tEditor);
 
 		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Response"));
-		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new (""));
+		gtk_container_add (GTK_CONTAINER (tEditor), text_view_template (false));
 	break;
 	case 'S':
-		tEditor = gtk_grid_new ();
-		gtk_grid_set_column_homogeneous (GTK_GRID (tEditor), true);
-		gtk_grid_set_row_homogeneous (GTK_GRID (tEditor), true);
+		tEditor = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
 
-		gtk_grid_attach (GTK_GRID (tEditor), gtk_label_new ("Shell"), 0, 0, 1, 1);
-		gtk_grid_attach (GTK_GRID (tEditor), resArgs.resBox = gtk_label_new (""), 0, 1, 1, 7);
-		gtk_grid_attach (GTK_GRID (tEditor), gtk_entry_new (), 0, 9, 1, 1);
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_label_new ("Shell"));
+		gtk_container_add (GTK_CONTAINER (tEditor), tItem = gtk_scrolled_window_new (NULL, NULL));
+		
+		gtk_box_set_child_packing (GTK_BOX (tEditor), tItem, TRUE, TRUE, 0, GTK_PACK_START);
+		gtk_widget_set_valign (tItem, GTK_ALIGN_FILL);
+//		gtk_widget_set_halign (tItem, GTK_ALIGN_FILL);
+
+		
+		gtk_container_add (GTK_CONTAINER (tItem), resArgs.resBox = text_view_template (false));
+		gtk_container_add (GTK_CONTAINER (tEditor), gtk_entry_new ());
 
 		resArgs.hbStr = NULL;
 	break;
@@ -143,9 +148,9 @@ void tabClsBtn_clicked (GtkWidget *tab)
 	gtk_notebook_detach_tab (GTK_NOTEBOOK (tabCon), tab);
 }
 
-bool getMsg(httpResponse *thisReq, int s_fd, char *r_str)
+bool getMsg(httpResponse *thisReq, int s_fd)
 {
-	char *s;
+	char *s, r_str[10240];
 	int r_len;
 	void *r_Box;
 	if (thisReq->hbStr != NULL)
@@ -163,20 +168,16 @@ bool getMsg(httpResponse *thisReq, int s_fd, char *r_str)
 	}
 	if ((r_Box = thisReq->resBox) != NULL)
 	{
-		gtk_label_set_text (r_Box, "");
+		GtkTextIter r_Iter;
+		GtkTextBuffer *r_Buf = gtk_text_view_get_buffer (r_Box);
+		gtk_text_buffer_set_text (r_Buf, "", 0);
 		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
-			if ((s = (char*)gtk_label_get_text (r_Box))[0] != 0)
-			{
-				if ((r_len = (r_len + strlen (s) - 10240)) > 0) //You'd better not overflow!
-				{
-					s = s + r_len;
-				}
-				gtk_label_set_text (r_Box, combine_str (s, r_str));
-			}
-			else
-				gtk_label_set_text (r_Box, r_str);
+			gtk_text_buffer_get_iter_at_offset (r_Buf, &r_Iter, -1);
+			gtk_text_buffer_place_cursor (r_Buf, &r_Iter);
+			printf ("%s", r_str);
+			gtk_text_buffer_insert_at_cursor (r_Buf, r_str, -1);
 		}
 	}
 	else
@@ -200,18 +201,23 @@ void *httpRes (void *sender)
 DWORD WINAPI httpRes (LPVOID sender)
 #endif
 {
+
 	g_print ("listening\n");
-	int s_fd = listenSocket (initSocket (), mPort);
+	int sc_fd = initSocket ();
+	g_signal_connect_swapped (resArgs.resBox, "destroy", G_CALLBACK (closeSocket), (gpointer)&sc_fd);
+
+	int s_fd = listenSocket (sc_fd, mPort);
 	if (s_fd >= 0)
 	{
-		g_print ("connected");
+		g_print ("connected\n");
 		if (resArgs.resBox != NULL)
 		{
-			g_signal_connect (gtk_grid_get_child_at (GTK_GRID (gtk_widget_get_parent (resArgs.resBox)), 0, 9), "key-release-event", G_CALLBACK (sendFrEntry), (gpointer)&s_fd);
-			g_signal_connect_swapped (resArgs.resBox, "destroy", G_CALLBACK (closePip), (gpointer)&s_fd);
+			GList *tList = gtk_container_get_children (GTK_CONTAINER (gtk_widget_get_parent (gtk_widget_get_parent (resArgs.resBox))));
+			gtk_label_set_text (g_list_nth_data (tList, 0), "Shell-Connected");
+			g_signal_connect (g_list_nth_data (tList, 2), "key-release-event", G_CALLBACK (sendFrEntry), (gpointer)&s_fd);
+			g_signal_connect_swapped (gtk_widget_get_parent (resArgs.resBox), "destroy", G_CALLBACK (closeSocket), (gpointer)&s_fd);
 		}
-		char r_str[10240];
-		getMsg (&resArgs, s_fd, r_str);
+		getMsg (&resArgs, s_fd);
 	}
 /*
 HTTP/1.1 200 OK
@@ -219,8 +225,7 @@ Content-Type: text/html;charset=gb2312
 Connection: close
 */
 
-	g_print ("_close");
-	closeSocket (s_fd);
+	closeSocket (&s_fd);
 }
 
 //http request
@@ -236,13 +241,12 @@ DWORD WINAPI httpReq (LPVOID sender)
 	if (sockConn (&s_fd, &thisReq->target_addr) != 0)
 		goto failed;
 
-	char r_str[10240];
 	g_print ("connected\n");
-	if (getMsg ((httpResponse*)thisReq, s_fd, r_str))
+	if (getMsg ((httpResponse*)thisReq, s_fd))
 		goto failed;
 	
-	g_print ("over\n_close\n");
-	closeSocket (s_fd);
+	g_print ("over\n");
+	closeSocket (&s_fd);
 #ifdef linux
 	return (void *)0;
 #else
@@ -284,9 +288,9 @@ void startServer (GtkWidget *portEntry)
 
 void closePip (int *s_fd)
 {
-	closeSocket (*s_fd);
-	if (mPip == NULL)
-		mPip = fopen ("", "r"); 
+	closeSocket (s_fd);
+	if (mPip != NULL)
+		pclose (mPip);
 }
 
 #ifdef linux
@@ -303,10 +307,10 @@ DWORD WINAPI readPip (LPVOID sender)
 	{
 		while (mPip == NULL);
 		pp = mPip;
-		while (fgets (pBuf ,255, pp) != NULL && (s_st = send (s_fd, pBuf, strlen (pBuf), 0)) >= 0);
+		while (fgets (pBuf ,255, pp) != NULL && pBuf[0] && (s_st = send (s_fd, pBuf, strlen (pBuf), 0)) >= 0);
 		pclose (pp);
 		mPip = NULL;
-//		send (s_fd, "\ndone!\n", 7, 0);
+		send (s_fd, "\ndone\n", 7, 0);
 	} while (s_st >= 0);
 }
 
