@@ -103,9 +103,12 @@ error:
 void closeSocket (int *s_fd)
 {
 	printf ("_close\n");
-	close (*s_fd);
+
 #ifdef _WIN32
+	closesocket (*s_fd);
 	WSACleanup ();
+#else
+	close (*s_fd);
 #endif
 }
 
