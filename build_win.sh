@@ -1,2 +1,2 @@
-/mingw64/bin/gcc `pkg-config --cflags gtk+-3.0` -o debug/win64/JustEditor.exe sources/JustEditor.c `pkg-config --libs gtk+-3.0`
-debug/win64/JustEditor.exe $1
+/mingw64/bin/gcc -mms-bitfields -I/mingw64/include/gtk-3.0 -I/mingw64/include -I/mingw64/include/pango-1.0  -I/mingw64/include/cairo -I/mingw64/include/pixman-1 -I/mingw64/include/atk-1.0 -I/mingw64/include -I/mingw64/include/gdk-pixbuf-2.0 -I/mingw64/include/glib-2.0 -I/mingw64/lib/glib-2.0/include -I/mingw64/include -o debug/bin/JustEditor.exe sources/JustEditor.c -L/mingw64/lib -L/mingw64/lib/../lib -L/mingw64/lib -lgtk-3 -lgdk-3 -lgdi32 -latk-1.0 -lpangocairo-1.0 -lpangoft2-1.0 -lm -lpangowin32-1.0 -lpango-1.0 -lgmodule-2.0 -lgobject-2.0 -lws2_32 -lcairo -ljpeg -lglib-2.0 -lgio-2.0
+debug/bin/JustEditor.exe $1
