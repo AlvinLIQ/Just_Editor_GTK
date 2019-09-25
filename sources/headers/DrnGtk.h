@@ -203,6 +203,7 @@ void css_default ()
 		"background-image:		url(\"resources/Ashe.png\");"
 		"background-size:		cover;"
 		"background-repeat:		no-repeat;"
+		"background-color:		rgba (32, 32, 32, 0.8);"
 		"}"
 		"notebook grid:first-child{"
 		"background-color:		rgba (32, 57, 57, 0.6);"
