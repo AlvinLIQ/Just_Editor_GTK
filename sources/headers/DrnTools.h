@@ -193,12 +193,17 @@ char *afterLast (char *source, const char s)
 	return fIndex == -1 ? source : source + fIndex + 1;
 }
 
-char *combine_str (char *s1, char *s2)
+char *combine_str (const char *s1, const char *s2, uint l1, uint l2)
 {
-	char result[10240];
+	if (l1 == -1)
+		l1 = strlen (s1);
+	if (l2 == -1)
+		l2 = strlen (s2);
+	
+	char *result = (char*)malloc (l1 + l2 -1);
 	sprintf (result, "%s%s", s1, s2);
-	char *presult = result;
-	return presult;
+
+	return result;
 }
 /*
 void writeFile (FILE *fp, char *wText)

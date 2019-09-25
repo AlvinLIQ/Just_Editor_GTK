@@ -161,6 +161,29 @@ gchar *openFileDialog (GtkWidget *window)
 	return filename;
 }
 
+void gtk_text_view_scroll_to_end (GtkTextView *txtView)
+{
+	GtkTextIter ed;
+	gtk_text_buffer_get_end_iter (gtk_text_view_get_buffer (txtView), &ed);
+	gtk_text_view_scroll_to_iter (txtView, &ed, 0, false, 0, 1);
+
+}
+
+struct bufferUpdateArgs
+{
+	GtkTextBuffer *r_Buf;
+	GtkTextIter r_Iter;
+	char *r_Str;
+	int r_Len;
+};
+
+gpointer buffer_update (void *args)
+{
+	struct bufferUpdateArgs *bufArgs = (struct bufferUpdateArgs *)args;
+	gtk_text_buffer_insert_interactive (bufArgs->r_Buf, &bufArgs->r_Iter, bufArgs->r_Str, -1, true);
+	return 0;
+}
+
 void append_css (gchar *css_s)
 {
 	GtkCssProvider *cprdr;

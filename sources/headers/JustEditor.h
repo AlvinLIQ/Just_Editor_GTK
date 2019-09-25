@@ -79,6 +79,8 @@ GtkWidget *getEditor (gchar e_num)
 
 		
 		gtk_container_add (GTK_CONTAINER (tItem), resArgs.resBox = text_view_template (false));
+		g_signal_connect (resArgs.resBox, "size-allocate", G_CALLBACK (gtk_text_view_scroll_to_end), NULL);
+
 		gtk_container_add (GTK_CONTAINER (tEditor), gtk_entry_new ());
 
 		resArgs.hbStr = NULL;
@@ -170,14 +172,23 @@ bool getMsg(httpResponse *thisReq, int s_fd)
 	{
 		GtkTextIter r_Iter;
 		GtkTextBuffer *r_Buf = gtk_text_view_get_buffer (r_Box);
-		gtk_text_buffer_set_text (r_Buf, "", 0);
+		gtk_text_buffer_get_end_iter (r_Buf, &r_Iter);
+
+		struct bufferUpdateArgs bufArgs = {r_Buf, r_Iter, r_str, -1};
+		
 		while ((r_len = recv (s_fd, r_str, 10240, 0)) > 0)
 		{
 			r_str [r_len] = '\0';
-			gtk_text_buffer_get_iter_at_offset (r_Buf, &r_Iter, -1);
-			gtk_text_buffer_place_cursor (r_Buf, &r_Iter);
+			bufArgs.r_Len = r_len;
 			printf ("%s", r_str);
-			gtk_text_buffer_insert_at_cursor (r_Buf, r_str, -1);
+#ifdef _WIN32
+			buffer_update (&bufArgs);
+#else
+			pthread_t th_id;
+			pthread_create (&th_id, NULL, &buffer_update, &bufArgs);
+			pthread_join (th_id, NULL);
+#endif
+
 		}
 	}
 	else
@@ -212,6 +223,7 @@ DWORD WINAPI httpRes (LPVOID sender)
 		g_print ("connected\n");
 		if (resArgs.resBox != NULL)
 		{
+//			g_signal_connect (resArgs.resBox, "");
 			GList *tList = gtk_container_get_children (GTK_CONTAINER (gtk_widget_get_parent (gtk_widget_get_parent (resArgs.resBox))));
 			gtk_label_set_text (g_list_nth_data (tList, 0), "Shell-Connected");
 			g_signal_connect (g_list_nth_data (tList, 2), "key-release-event", G_CALLBACK (sendFrEntry), (gpointer)&s_fd);
